@@ -8,9 +8,17 @@
     <PackageReference Include="BouncyCastle" Version="1.8.5" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.9" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Core" Version="3.0.9" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="5.1.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.1.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.0.2" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="5.4.0" />
+    <PackageReference Include="MongoDB.Driver" Version="2.8.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.AspNetCore.Mvc.Core">
+      <HintPath>..\..\..\..\.nuget\packages\microsoft.aspnetcore.mvc.core\2.1.0\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Core.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
