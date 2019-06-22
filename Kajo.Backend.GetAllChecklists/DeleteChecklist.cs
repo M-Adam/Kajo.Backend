@@ -1,8 +1,11 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Kajo.Backend.Common;
 using Kajo.Backend.Common.Authorization;
-using Kajo.Backend.Common.RequestObjectReader;
+using Kajo.Backend.Common.Repositories;
+using Kajo.Backend.Common.RequestBodyExtension;
+using Kajo.Backend.Common.Requests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -12,19 +15,25 @@ using Newtonsoft.Json;
 
 namespace Kajo.Backend.Functions.Checklists
 {
-    public static class DeleteChecklist
+    public class DeleteChecklist : FunctionBase
     {
-        [FunctionName(nameof(DeleteChecklist))]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = null)] HttpRequest req,
-            ILogger log, [AccessToken] Auth auth, [RequestBody] DeleteChecklistRequest request)
+        public DeleteChecklist(IChecklistRepository checklistsRepo, IUserRepository userRepository) : base(checklistsRepo, userRepository)
         {
-            throw new NotImplementedException();
         }
+
+        [FunctionName(nameof(DeleteChecklist))]
+        public async Task<IActionResult> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = null)] HttpRequest req,
+            ILogger log, [RequestBody] DeleteChecklistRequest request)
+        {
+            await ChecklistsRepo.DeleteChecklist(request);
+            await UserRepo.DeleteChecklistOwnership(request);
+            log.LogInformation("Removed checklist {id} by {user}", request.ChecklistId, request.Auth);
+            return Ok();
+        }
+
+        
     }
 
-    public class DeleteChecklistRequest
-    {
-        public string ChecklistId { get; set; }
-    }
+   
 }

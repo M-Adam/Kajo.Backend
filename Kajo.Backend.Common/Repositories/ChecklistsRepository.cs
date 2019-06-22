@@ -1,42 +1,44 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Kajo.Backend.Common.Authorization;
 using Kajo.Backend.Common.Models;
 using Kajo.Backend.Common.Requests;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Kajo.Backend.Common.Repositories
 {
     public class ChecklistsRepository : BaseRepository<Checklist>, IChecklistRepository
     {
-        private static FilterDefinitionBuilder<Checklist> Filter => Builders<Checklist>.Filter;
-
         public ChecklistsRepository(IMongoDatabase mongoDatabase) : base(mongoDatabase, RepositoryConst.ChecklistsCollectionName)
         {
         }
 
-        public async Task<List<Checklist>> GetChecklistsAvailableToUser(string email)
+        public async Task<List<Checklist>> GetChecklistsAvailableToUser(User user)
         {
-            var ownerDefinition = Filter.Eq(x => x.ChecklistOwner.Email, email);
-            var sharedDefinition = Filter.ElemMatch(x => x.SharedWith, x=>x.Email == email);
-            var filter = Filter.Or(ownerDefinition, sharedDefinition);
+            var filter = Filter.In(x => x.Id, user.OwnedChecklists.Concat(user.GuestChecklists));
             var checklists = await GetWhere(filter);
+            foreach (var checklist in checklists.Where(x=>user.OwnedChecklists.Contains(x.Id)))
+            {
+                checklist.IsCurrentUserTheOwner = true;
+            }
             return checklists;
         }
 
-        public async Task<Checklist> CreateChecklist(AddOrUpdateChecklistRequest request, Auth auth)
+        public async Task<Checklist> CreateChecklist(AddOrUpdateChecklistRequest request)
         {
-            var currentCount = await Collection.CountDocumentsAsync(Filter.Eq(x => x.ChecklistOwner.Email, auth.Email));
+            var currentCount = await Collection.CountDocumentsAsync(Filter.Eq(x => x.ChecklistOwner.Email, request.Auth.Email));
             var checklist = new Checklist
             {
                 Name = request.Name,
                 Description = request.Description,
                 ChecklistOwner = new ChecklistUser()
                 {
-                    Email = auth.Email,
-                    Id = auth.Id
+                    Email = request.Auth.Email,
+                    Id = request.Auth.Id
                 },
                 Order = (int)currentCount + 1,
                 IsCurrentUserTheOwner = true
@@ -44,11 +46,18 @@ namespace Kajo.Backend.Common.Repositories
             await Collection.InsertOneAsync(checklist);
             return checklist;
         }
+
+        public async Task DeleteChecklist(DeleteChecklistRequest request)
+        {
+            var filter = Filter.Eq(x => x.Id, ObjectId.Parse(request.ChecklistId));
+            await Collection.DeleteOneAsync(filter);
+        }
     }
 
     public interface IChecklistRepository 
     {
-        Task<List<Checklist>> GetChecklistsAvailableToUser(string email);
-        Task<Checklist> CreateChecklist(AddOrUpdateChecklistRequest request, Auth auth);
+        Task<List<Checklist>> GetChecklistsAvailableToUser(User user);
+        Task<Checklist> CreateChecklist(AddOrUpdateChecklistRequest request);
+        Task DeleteChecklist(DeleteChecklistRequest request);
     }
 }

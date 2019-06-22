@@ -1,6 +1,6 @@
 ﻿using Microsoft.Azure.WebJobs.Host.Config;
 
-namespace Kajo.Backend.Common.RequestObjectReader
+namespace Kajo.Backend.Common.RequestBodyExtension
 {
     internal class RequestBodyExtensionProvider : IExtensionConfigProvider
     {

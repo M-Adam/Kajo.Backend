@@ -1,16 +1,24 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host.Bindings;
 using Microsoft.Azure.WebJobs.Host.Protocols;
 
-namespace Kajo.Backend.Common.Authorization
+namespace Kajo.Backend.Common.RequestBodyExtension
 {
-    internal class AccessTokenBinding : IBinding
+    internal class RequestBodyBinding : IBinding
     {
+        private readonly Type _parameterType;
+
+        public RequestBodyBinding(Type parameterType)
+        {
+            _parameterType = parameterType;
+        }
+
         public async Task<IValueProvider> BindAsync(BindingContext context)
         {
             var request = context.BindingData["req"] as HttpRequest;
-            return await Task.FromResult<IValueProvider>(new AccessTokenValueProvider(request));
+            return await Task.FromResult<IValueProvider>(new RequestBodyValueProvider(request, _parameterType));
         }
 
         public bool FromAttribute => true;

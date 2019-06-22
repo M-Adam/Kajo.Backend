@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Host.Bindings;
 
-namespace Kajo.Backend.Common.RequestObjectReader
+namespace Kajo.Backend.Common.RequestBodyExtension
 {
     internal class RequestBodyBindingProvider : IBindingProvider
     {

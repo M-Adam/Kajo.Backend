@@ -10,6 +10,10 @@ namespace Kajo.Backend.Common.Authorization
         public string Email { get; set; }
         public bool IsAuthenticated { get; set; }
         public string ErrorMessage { get; set; }
-        
+
+        public override string ToString()
+        {
+            return $"{Id}:{Email}";
+        }
     }
 }

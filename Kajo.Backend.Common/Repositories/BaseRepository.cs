@@ -10,8 +10,11 @@ namespace Kajo.Backend.Common.Repositories
 {
     public abstract class BaseRepository<T>
     {
+        protected static FilterDefinitionBuilder<T> Filter => Builders<T>.Filter;
+        protected static UpdateDefinitionBuilder<T> Update => Builders<T>.Update;
         protected IMongoCollection<T> Collection;
         
+
         public BaseRepository(IMongoDatabase mongoDatabase, string collectionName)
         {
             Collection = mongoDatabase.GetCollection<T>(collectionName);

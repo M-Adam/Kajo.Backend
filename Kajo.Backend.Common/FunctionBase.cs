@@ -10,13 +10,16 @@ namespace Kajo.Backend.Common
     public class FunctionBase
     {
         protected readonly IChecklistRepository ChecklistsRepo;
+        protected readonly IUserRepository UserRepo;
 
-        public FunctionBase(IChecklistRepository checklistsRepo)
+        public FunctionBase(IChecklistRepository checklistsRepo, IUserRepository userRepo)
         {
             ChecklistsRepo = checklistsRepo;
+            UserRepo = userRepo;
         }
 
         protected OkObjectResult Ok(object obj) => new OkObjectResult(obj);
+        protected OkResult Ok() => new OkResult();
         protected UnauthorizedResult Unauthorized() => new UnauthorizedResult();
     }
 }

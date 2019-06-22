@@ -15,60 +15,24 @@ using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using static Kajo.Backend.Common.Repositories.RepositoryConst;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 
-[assembly: WebJobsStartup(typeof(CommonFunctionsStartup))]
+[assembly: FunctionsStartup(typeof(CommonFunctionsStartup))]
 namespace Kajo.Backend.Common
 {
-    public class CommonFunctionsStartup : IWebJobsStartup
+    public class CommonFunctionsStartup : FunctionsStartup
     {
-        public void Configure(IWebJobsBuilder builder)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
-            builder.AddAccessTokenBinding();
-            builder.AddRequestBodyBinding();
+            builder.Services.AddWebJobs(options => options.AllowPartialHostStartup = true)
+                .AddRequestBodyBinding();
 
-            builder.Services.AddSingleton<IMongoClient>(provider => new MongoClient(ConnectionString));
-            builder.Services.AddSingleton(provider => provider.GetService<IMongoClient>().GetDatabase(DatabaseName));
-
-            builder.Services.AddScoped<IChecklistRepository>(provider => new ChecklistsRepository(GetDatabase(provider)));
-
-            //builder.Services.AddAuthenticationCore(options =>
-            //{
-            //    options.AddScheme("asdf", schemeBuilder => schemeBuilder.);
-            //})
-
-            //builder.Services.AddAuthorization(options =>
-            //{
-            //    options.DefaultPolicy = new AuthorizationPolicy(new List<IAuthorizationRequirement>()
-            //    {
-            //        new AssertionRequirement(context => )
-            //    },);
-            //});
+            builder.Services.AddSingleton(provider => new MongoClient(ConnectionString).GetDatabase(DatabaseName));
             
+            builder.Services.AddScoped<IChecklistRepository>(provider => 
+                new ChecklistsRepository(provider.GetService<IMongoDatabase>()));
+            builder.Services.AddScoped<IUserRepository>(provider =>
+                new UserRepository(provider.GetService<IMongoDatabase>()));
         }
-
-        private static IMongoDatabase GetDatabase(IServiceProvider serviceProvider) => serviceProvider.GetService<IMongoDatabase>();
     }
-
-    //class s : IAuthenticationHandler
-    //{
-    //    public Task InitializeAsync(AuthenticationScheme scheme, HttpContext context)
-    //    {
-            
-    //    }
-
-    //    public Task<AuthenticateResult> AuthenticateAsync()
-    //    {
-    //        return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket()))
-    //    }
-
-    //    public Task ChallengeAsync(AuthenticationProperties properties)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-
-    //    public Task ForbidAsync(AuthenticationProperties properties)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
 }

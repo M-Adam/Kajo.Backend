@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Kajo.Backend.Common;
 using Kajo.Backend.Common.Authorization;
 using Kajo.Backend.Common.Repositories;
-using Kajo.Backend.Common.RequestObjectReader;
+using Kajo.Backend.Common.RequestBodyExtension;
 using Kajo.Backend.Common.Requests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,21 +16,17 @@ namespace Kajo.Backend.Functions.Checklists
 {
     public class AddChecklist : FunctionBase
     {
-        public AddChecklist(IChecklistRepository checklistsRepo) : base(checklistsRepo)
+        public AddChecklist(IChecklistRepository checklistsRepo, IUserRepository userRepository) : base(checklistsRepo, userRepository)
         {
         }
 
         [FunctionName(nameof(AddChecklist))]
         public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
-            ILogger log, [AccessToken] Auth auth, [RequestBody] AddOrUpdateChecklistRequest request)
+            ILogger log, [RequestBody] AddOrUpdateChecklistRequest request)
         {
-            if (!auth.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
-            
-            var checklists = await ChecklistsRepo.CreateChecklist(request, auth);
+            var checklists = await ChecklistsRepo.CreateChecklist(request);
+            await UserRepo.AddChecklistToUser(checklists.Id, request.Auth);
             log.LogInformation("Created checklist {name}-{id}", checklists.Name, checklists.Id);
             return Ok(checklists);
         }

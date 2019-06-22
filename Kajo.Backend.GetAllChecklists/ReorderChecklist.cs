@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Kajo.Backend.Common.RequestBodyExtension;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -15,7 +16,7 @@ namespace Kajo.Backend.Functions.Checklists
         [FunctionName(nameof(ReorderChecklist))]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = null)] HttpRequest req,
-            ILogger log)
+            ILogger log, [RequestBody] ReorderChecklistRequest request)
         {
             throw new NotImplementedException();
         }
