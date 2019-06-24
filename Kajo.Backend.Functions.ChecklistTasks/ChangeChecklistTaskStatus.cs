@@ -22,6 +22,8 @@ namespace Kajo.Backend.Functions.ChecklistTasks
             if (await UserRepo.HasAccessToChecklist(request.ChecklistId, request.Auth))
             {
                 await ChecklistsRepo.ChangeChecklistTaskStatus(request);
+                log.LogInformation("Checklist {id} task {id2} status changed to {d}", 
+                    request.ChecklistId, request.ChecklistTaskId, request.IsChecked);
                 return Ok();
             }
             

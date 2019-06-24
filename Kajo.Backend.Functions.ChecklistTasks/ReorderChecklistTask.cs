@@ -1,5 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using Kajo.Backend.Common;
+using Kajo.Backend.Common.Models;
+using Kajo.Backend.Common.Repositories;
+using Kajo.Backend.Common.RequestBodyExtension;
+using Kajo.Backend.Common.Requests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -8,14 +13,25 @@ using Microsoft.Extensions.Logging;
 
 namespace Kajo.Backend.Functions.ChecklistTasks
 {
-    public class ReorderChecklistTask
+    public class ReorderChecklistTask : FunctionBase
     {
         [FunctionName(nameof(ReorderChecklistTask))]
         public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = null)] HttpRequest req,
-            ILogger log)
+            ILogger log, [RequestBody] ReorderChecklistTaskRequest request)
         {
-            throw new NotImplementedException();
+            if (await UserRepo.HasAccessToChecklist(request.ChecklistId, request.Auth))
+            {
+                await ChecklistsRepo.ReorderChecklistTasks(request);
+                log.LogInformation("Checklists {id} tasks reordered", request.ChecklistId);
+                return Ok();
+            }
+
+            return Unauthorized();
+        }
+
+        public ReorderChecklistTask(IChecklistRepository checklistsRepo, IUserRepository userRepo) : base(checklistsRepo, userRepo)
+        {
         }
     }
 }

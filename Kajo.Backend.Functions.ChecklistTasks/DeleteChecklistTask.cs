@@ -22,6 +22,7 @@ namespace Kajo.Backend.Functions.ChecklistTasks
             if (await UserRepo.HasAccessToChecklist(request.ChecklistId, request.Auth))
             {
                 await ChecklistsRepo.DeleteChecklistTask(request);
+                log.LogInformation("Checklist {id} task {id2} deleted", request.ChecklistId, request.ChecklistTaskId);
                 return Ok();
             }
 

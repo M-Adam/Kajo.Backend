@@ -19,10 +19,10 @@ namespace Kajo.Backend.Functions.ChecklistTasks
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = null)] HttpRequest req,
             ILogger log, [RequestBody] AddChecklistTaskRequest request)
         {
-            var hasAccess = await UserRepo.HasAccessToChecklist(request.ChecklistId, request.Auth);
-            if (hasAccess)
+            if (await UserRepo.HasAccessToChecklist(request.ChecklistId, request.Auth))
             {
                 var task = await ChecklistsRepo.AddChecklistTask(request);
+                log.LogInformation("Checklist {id} task {id2} added", request.ChecklistId, request.Text);
                 return Ok(task);
             }
             return new ForbidResult();

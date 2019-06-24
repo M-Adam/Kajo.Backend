@@ -30,6 +30,7 @@ namespace Kajo.Backend.Functions.Checklists
                 Email = request.SharedWithEmail
             }, false);
             await _mailSender.ShareChecklist(request.ChecklistId, request.Auth.Email, request.SharedWithEmail);
+            log.LogInformation("Checklist {id} shared with {s} by {o}", request.ChecklistId, request.SharedWithEmail, request.Auth.Email);
             return Ok();
         }
 

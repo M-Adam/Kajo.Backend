@@ -70,6 +70,23 @@ namespace Kajo.Backend.Common.Repositories
             var update = Update.PullFilter(x => x.ChecklistTasks, x => x.Id == request.ChecklistTaskId);
             await Collection.UpdateOneAsync(filter, update);
         }
+
+        public async Task ReorderChecklistTasks(ReorderChecklistTaskRequest request)
+        {
+            var filter = Filter.Eq(x => x.Id, request.ChecklistId);
+            var checklist = await Collection.Find(filter).FirstAsync();
+            var tasksCopy = new ChecklistTask[checklist.ChecklistTasks.Count];
+            checklist.ChecklistTasks.CopyTo(tasksCopy);
+            foreach (var checklistTask in tasksCopy)
+            {
+                checklistTask.Order = request.ChecklistTasksOrdering.First(x => x.taskId == checklistTask.Id).order;
+            }
+
+            var update = Update.Combine(Update.PullFilter(x => x.ChecklistTasks, x => true),
+                Update.PushEach(x => x.ChecklistTasks, tasksCopy));
+
+            await Collection.UpdateOneAsync(filter, update);
+        }
     }
 
     public interface IChecklistRepository 
@@ -80,5 +97,6 @@ namespace Kajo.Backend.Common.Repositories
         Task<ChecklistTask> AddChecklistTask(AddChecklistTaskRequest request);
         Task ChangeChecklistTaskStatus(ChangeChecklistTaskStatusRequest request);
         Task DeleteChecklistTask(DeleteChecklistTaskRequest request);
+        Task ReorderChecklistTasks(ReorderChecklistTaskRequest request);
     }
 }
