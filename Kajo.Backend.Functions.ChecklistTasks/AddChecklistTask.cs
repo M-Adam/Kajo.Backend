@@ -1,5 +1,9 @@
 using System;
 using System.Threading.Tasks;
+using Kajo.Backend.Common;
+using Kajo.Backend.Common.Repositories;
+using Kajo.Backend.Common.RequestBodyExtension;
+using Kajo.Backend.Common.Requests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -8,14 +12,24 @@ using Microsoft.Extensions.Logging;
 
 namespace Kajo.Backend.Functions.ChecklistTasks
 {
-    public static class AddChecklistTask
+    public class AddChecklistTask : FunctionBase
     {
         [FunctionName(nameof(AddChecklistTask))]
-        public static async Task<IActionResult> Run(
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = null)] HttpRequest req,
-            ILogger log)
+            ILogger log, [RequestBody] AddChecklistTaskRequest request)
         {
-            throw new NotImplementedException();
+            var hasAccess = await UserRepo.HasAccessToChecklist(request.ChecklistId, request.Auth);
+            if (hasAccess)
+            {
+                var task = await ChecklistsRepo.AddChecklistTask(request);
+                return Ok(task);
+            }
+            return new ForbidResult();
+        }
+
+        public AddChecklistTask(IChecklistRepository checklistsRepo, IUserRepository userRepo) : base(checklistsRepo, userRepo)
+        {
         }
     }
 }

@@ -27,7 +27,7 @@ namespace Kajo.Backend.Functions.Checklists
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
             ILogger log, [RequestBody] RequestBase request)
         {
-            var user = await UserRepo.GetUser(request.Auth);
+            var user = await UserRepo.GetUser(request.Auth, true);
             var checklists = await ChecklistsRepo.GetChecklistsAvailableToUser(user);
             return Ok(checklists);
         }

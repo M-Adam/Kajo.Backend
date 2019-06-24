@@ -26,7 +26,7 @@ namespace Kajo.Backend.Functions.Checklists
             ILogger log, [RequestBody] AddOrUpdateChecklistRequest request)
         {
             var checklists = await ChecklistsRepo.CreateChecklist(request);
-            await UserRepo.AddChecklistToUser(checklists.Id, request.Auth);
+            await UserRepo.AddChecklistToUser(checklists.Id, request.Auth, true);
             log.LogInformation("Created checklist {name}-{id}", checklists.Name, checklists.Id);
             return Ok(checklists);
         }

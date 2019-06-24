@@ -11,14 +11,12 @@ namespace Kajo.Backend.Common.Models
         [BsonConstructor]
         public User()
         {
-            OwnedChecklists = new List<ObjectId>();
-            GuestChecklists = new List<ObjectId>();
+            Checklists = new List<UsersChecklist>();
         }
 
         [BsonId]
         public string Id { get; set; }
         public string Email { get; set; }
-        public List<ObjectId> OwnedChecklists { get; set; }
-        public List<ObjectId> GuestChecklists { get; set; }
+        public List<UsersChecklist> Checklists { get; set; }
     }
 }

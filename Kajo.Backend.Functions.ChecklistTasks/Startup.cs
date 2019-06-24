@@ -1,16 +1,12 @@
 ﻿using Kajo.Backend.Common;
 using Kajo.Backend.Functions.ChecklistTasks;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Hosting;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 
-[assembly: WebJobsStartup(typeof(Startup))]
+[assembly: FunctionsStartup(typeof(Startup))]
 namespace Kajo.Backend.Functions.ChecklistTasks
 {
-    public class Startup : IWebJobsStartup
+    public class Startup : CommonFunctionsStartup
     {
-        public void Configure(IWebJobsBuilder builder)
-        {
-            builder.UseWebJobsStartup<CommonFunctionsStartup>();
-        }
+
     }
 }

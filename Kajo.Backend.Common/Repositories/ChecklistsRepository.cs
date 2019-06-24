@@ -17,31 +17,19 @@ namespace Kajo.Backend.Common.Repositories
         {
         }
 
-        public async Task<List<Checklist>> GetChecklistsAvailableToUser(User user)
+        public async Task<IOrderedEnumerable<Checklist>> GetChecklistsAvailableToUser(User user)
         {
-            var filter = Filter.In(x => x.Id, user.OwnedChecklists.Concat(user.GuestChecklists));
-            var checklists = await GetWhere(filter);
-            foreach (var checklist in checklists.Where(x=>user.OwnedChecklists.Contains(x.Id)))
-            {
-                checklist.IsCurrentUserTheOwner = true;
-            }
-            return checklists;
+            var checklists = await GetWhere(Filter.In(x=>x.Id, user.Checklists.Select(x=>x.ChecklistId)));
+            
+            return checklists.OrderBy(x=>user.Checklists.Find(y=>y.ChecklistId == x.Id).Order);
         }
 
         public async Task<Checklist> CreateChecklist(AddOrUpdateChecklistRequest request)
         {
-            var currentCount = await Collection.CountDocumentsAsync(Filter.Eq(x => x.ChecklistOwner.Email, request.Auth.Email));
             var checklist = new Checklist
             {
                 Name = request.Name,
                 Description = request.Description,
-                ChecklistOwner = new ChecklistUser()
-                {
-                    Email = request.Auth.Email,
-                    Id = request.Auth.Id
-                },
-                Order = (int)currentCount + 1,
-                IsCurrentUserTheOwner = true
             };
             await Collection.InsertOneAsync(checklist);
             return checklist;
@@ -49,15 +37,48 @@ namespace Kajo.Backend.Common.Repositories
 
         public async Task DeleteChecklist(DeleteChecklistRequest request)
         {
-            var filter = Filter.Eq(x => x.Id, ObjectId.Parse(request.ChecklistId));
+            var filter = Filter.Eq(x => x.Id, request.ChecklistId);
             await Collection.DeleteOneAsync(filter);
+        }
+
+        public async Task<ChecklistTask> AddChecklistTask(AddChecklistTaskRequest request)
+        {
+            var task = new ChecklistTask()
+            {
+                Order = request.Order,
+                Id = ObjectId.GenerateNewId().ToString(),
+                Text = request.Text
+            };
+            var update = Update.AddToSet(x => x.ChecklistTasks, task);
+            var filter = Filter.Eq(x => x.Id, request.ChecklistId);
+            await Collection.UpdateOneAsync(filter, update);
+            return task;
+        }
+
+        public async Task ChangeChecklistTaskStatus(ChangeChecklistTaskStatusRequest request)
+        {
+            var filter = Filter.And(Filter.Eq(x => x.Id, request.ChecklistId), Filter.ElemMatch(x=>x.ChecklistTasks, x=>x.Id == request.ChecklistTaskId));
+            var checklist = await Collection.Find(filter).FirstAsync();
+            var checklistTask = checklist.ChecklistTasks.First(x => x.Id == request.ChecklistTaskId);
+            var update = Update.Set("checklistTasks.$.done", request.IsChecked);
+            await Collection.UpdateOneAsync(filter, update);
+        }
+
+        public async Task DeleteChecklistTask(DeleteChecklistTaskRequest request)
+        {
+            var filter = Filter.Eq(x => x.Id, request.ChecklistId);
+            var update = Update.PullFilter(x => x.ChecklistTasks, x => x.Id == request.ChecklistTaskId);
+            await Collection.UpdateOneAsync(filter, update);
         }
     }
 
     public interface IChecklistRepository 
     {
-        Task<List<Checklist>> GetChecklistsAvailableToUser(User user);
+        Task<IOrderedEnumerable<Checklist>> GetChecklistsAvailableToUser(User user);
         Task<Checklist> CreateChecklist(AddOrUpdateChecklistRequest request);
         Task DeleteChecklist(DeleteChecklistRequest request);
+        Task<ChecklistTask> AddChecklistTask(AddChecklistTaskRequest request);
+        Task ChangeChecklistTaskStatus(ChangeChecklistTaskStatusRequest request);
+        Task DeleteChecklistTask(DeleteChecklistTaskRequest request);
     }
 }

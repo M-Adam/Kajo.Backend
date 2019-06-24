@@ -8,10 +8,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Kajo.Backend.Functions.ChecklistTasks
 {
-    public static class ReorderChecklistTask
+    public class ReorderChecklistTask
     {
         [FunctionName(nameof(ReorderChecklistTask))]
-        public static async Task<IActionResult> Run(
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = null)] HttpRequest req,
             ILogger log)
         {

@@ -11,19 +11,17 @@ namespace Kajo.Backend.Common.Models
         [BsonConstructor]
         public Checklist()
         {
-            SharedWith = new List<ChecklistUser>();
+            //SharedWith = new List<ChecklistUser>();
             ChecklistTasks = new List<ChecklistTask>();
         }
 
         [BsonId]
-        public ObjectId Id { get; set; }
-        public ChecklistUser ChecklistOwner { get; set; }
+        [BsonRepresentation(BsonType.String)]
+        public string Id { get; set; }
+        //public ChecklistUser ChecklistOwner { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public int Order { get; set; }
-        public List<ChecklistUser> SharedWith { get; set; }
+        //public List<ChecklistUser> SharedWith { get; set; }
         public List<ChecklistTask> ChecklistTasks { get; set; }
-
-        [BsonIgnore] public bool IsCurrentUserTheOwner { get; set; }
     }
 }
